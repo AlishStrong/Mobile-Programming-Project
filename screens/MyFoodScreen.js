@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Button, Text, Alert, AsyncStorage } from 'react-native';
+import { View, Alert, AsyncStorage } from 'react-native';
+import { Title, Container, Content, Form, Item, Input, Button, Text, Label, Picker, Footer, FooterTab, Tab, Tabs, Header, Body } from 'native-base';
 
-const userId = 'AlisherAlievID';
+import FoodList from "./views/FoodList";
+import FoodAdd from "./views/FoodAdd";
 
 export default class MyFoodScreen extends React.Component {
     static navigationOptions = { title: 'My food', };
@@ -39,33 +41,31 @@ export default class MyFoodScreen extends React.Component {
 
     state = {
         passedState: this.props.navigation.state.params.passedItem,
-        profileData: this.props.navigation.state.params.profileData
+        profileData: this.props.navigation.state.params.profileData,
+        foodInHouse: this.props.navigation.state.params.foodInHouse
     }
 
     childModify = () => {
         // const { params } = this.props.navigation.state;
         // var passedFunction = this.props.navigation.getParam('passedFunction');
         // passedFunction('Alisher');
-        this.setState({passedState: 'I was modified by a child!'});
+        this.setState({ passedState: 'I was modified by a child!' });
         this.props.navigation.state.params.passedFunction('I was modified by a child!');
     }
 
 
     render() {
-        const { navigation } = this.props;
-        const { params } = this.props.navigation.state;
-        const passedItem = navigation.getParam('passedItem', 'nothing');
         return (
-            <View>
-                {/* <Text>{params.passedItem}</Text> */}
-                <Text>{this.state.passedState}</Text>
-                <Text>{this.state.profileData.age}</Text>
-                {this.state.profileData.allergy && <Text>{this.state.profileData.allergy.join(', ')}</Text>}
-                <Button title="Change test data" onPress={() => this.childModify()}></Button>
-                <Button title="Save data" onPress={() => this.saveUserId()}></Button>
-                <Button title="Delete saved data" onPress={() => this.deleteUserId()}></Button>
-                <Button title="Show saved data" onPress={() => this.showUserId()}></Button>
-            </View>
+            <Container>
+                <Tabs tabBarPosition="bottom">
+                    <Tab heading="My shelf" tabStyle={{ width: 100 }} activeTabStyle={{ width: 100 }} tab>
+                        <FoodList foodInHouse={this.state.foodInHouse} />
+                    </Tab>
+                    <Tab heading="Add item" tabStyle={{ width: 100 }} activeTabStyle={{ width: 100 }}>
+                        <FoodAdd />
+                    </Tab>
+                </Tabs>
+            </Container>
         );
     }
 }

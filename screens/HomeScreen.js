@@ -9,11 +9,12 @@ export default class HomeScreen extends React.Component {
     state = {
         loaded: false,
         testState: 'I was created by Parent',
-        profileData: {}
+        profileData: {},
+        foodInHouse: {}
     }
 
     componentWillMount = () => {
-        this.setState({anotherTestState: 'I got modified'});
+        this.setState({ anotherTestState: 'I got modified' });
         //Check if there is a need for profileData fetching
         if (JSON.stringify(this.state.profileData) === '{}') {
             //Check whether profileID is saved
@@ -46,12 +47,21 @@ export default class HomeScreen extends React.Component {
 
     //Fetch data from Firebase
     fetchFirebase = (profileID) => {
+        //Fetch profileData
         firebase.database().ref('profiles/' + profileID).once('value')
             .then((snapshot) => {
                 this.setState({
                     profileData: snapshot.val()
                 });
                 this.setState({ loaded: true });
+            })
+            .catch((error) => console.log(error));
+        //Fetch foodInHouse
+        firebase.database().ref('housefood/' + profileID).once('value')
+            .then((snapshot) => {
+                this.setState({
+                    foodInHouse: snapshot.val()
+                });
             })
             .catch((error) => console.log(error));
     }
@@ -76,7 +86,6 @@ export default class HomeScreen extends React.Component {
         return (
             <Container>
                 <Content>
-                    <Text>{this.state.profileData.age}</Text>
                     <Text style={styles.headerStyle}>This is the home screen</Text>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block success
@@ -85,7 +94,7 @@ export default class HomeScreen extends React.Component {
                     </Button>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block info
-                        onPress={() => navigate('MyFoodRT', { passedItem: this.state.testState, passedFunction: this.editTestState, profileData: this.state.profileData })} >
+                        onPress={() => navigate('MyFoodRT', { foodInHouse: this.state.foodInHouse, passedItem: this.state.testState, passedFunction: this.editTestState, profileData: this.state.profileData })} >
                         <Text>My Food</Text>
                     </Button>
                     <Button disabled={!this.state.loaded}
