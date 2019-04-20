@@ -9,77 +9,14 @@ export default class ProfileView extends React.Component {
 
     state = {
         editCancelButton: 'Edit',
-
         //profile data states
-        //Default values
-        genderState: 'male',
-        ageState: '25',
-        heightState: '180',
-        weightState: '65',
-        exerciseState: 'moderate',
-        allergyState: ['nuts', 'gluten'],
-        aimState: 'maintain-weight',
-
-        //States for old values
-        genderOld: 'male',
-        ageOld: '25',
-        heightOld: '180',
-        weightOld: '65',
-        exerciseOld: 'moderate',
-        allergyOld: ['nuts', 'gluten'],
-        aimOld: 'maintain-weight'
-    }
-
-    componentDidMount = () => {
-        AsyncStorage.getItem("profileId").then(profileID => {
-            if (profileID !== null) {
-                firebase.database().ref('profiles').once('value')
-                    .then((snapshot) => {
-                        this.setState({
-                            genderState: snapshot.child(profileID).child("gender").val(),
-                            ageState: snapshot.child(profileID).child("age").val(),
-                            heightState: snapshot.child(profileID).child("height").val(),
-                            weightState: snapshot.child(profileID).child("weight").val(),
-                            exerciseState: snapshot.child(profileID).child("exercise").val(),
-                            allergyState: (snapshot.child(profileID).child("allergy").exists() ? snapshot.child(profileID).child("allergy").val() : []),
-                            aimState: snapshot.child(profileID).child("aim").val(),
-    
-                            genderOld: snapshot.child(profileID).child("gender").val(),
-                            ageOld: snapshot.child(profileID).child("age").val(),
-                            heightOld: snapshot.child(profileID).child("height").val(),
-                            weightOld: snapshot.child(profileID).child("weight").val(),
-                            exerciseOld: snapshot.child(profileID).child("exercise").val(),
-                            allergyOld: (snapshot.child(profileID).child("allergy").exists() ? snapshot.child(profileID).child("allergy").val() : []),
-                            aimOld: snapshot.child(profileID).child("aim").val(),
-                        });
-                    });
-            }
-        }).catch(error => console.log(error));
-    }
-
-    saveToFirebase = () => {
-        //Prepare the data
-        var profileData = {
-            'gender': this.state.genderState,
-            'age': this.state.ageState,
-            'height': this.state.heightState,
-            'weight': this.state.weightState,
-            'exercise': this.state.exerciseState,
-            'allergy': this.state.allergyState,
-            'aim': this.state.aimState
-        };
-
-        AsyncStorage.getItem("profileId").then(profileID => {
-            if (profileID === null) {
-                //Save profile data to Firebase and get its key as ID
-                var newProfileID = firebase.database().ref('profiles').push(profileData).key;
-                AsyncStorage.setItem("profileId", newProfileID).catch(error => console.log(error));
-            } else {
-                //Update profile data on Firebase
-                firebase.database().ref('profiles/' + profileID).update(profileData);
-            }
-        })
-        .catch(error => console.log(error));
+        genderState: this.props.profileData.gender,
+        ageState: this.props.profileData.age,
+        heightState: this.props.profileData.height,
+        weightState: this.props.profileData.weight,
+        exerciseState: this.props.profileData.exercise,
+        allergyState: this.props.profileData.allergy ? this.props.profileData.allergy : [],
+        aimState: this.props.profileData.aim,
     }
 
     editCancelForm = () => {
@@ -93,34 +30,50 @@ export default class ProfileView extends React.Component {
         else {
             this.setState({
                 editCancelButton: 'Edit',
-                //Revert to old values
-                genderState: this.state.genderOld,
-                ageState: this.state.ageOld,
-                heightState: this.state.heightOld,
-                weightState: this.state.weightOld,
-                exerciseState: this.state.exerciseOld,
-                allergyState: this.state.allergyOld,
-                aimState: this.state.aimOld,
+                genderState: this.props.profileData.gender,
+                ageState: this.props.profileData.age,
+                heightState: this.props.profileData.height,
+                weightState: this.props.profileData.weight,
+                exerciseState: this.props.profileData.exercise,
+                allergyState: this.props.profileData.allergy ? this.props.profileData.allergy : [],
+                aimState: this.props.profileData.aim,
             });
         }
     }
 
     saveForm = () => {
-        //Modify the state
-        this.setState({
-            editCancelButton: 'Edit',
-            //Set current state values to oldStates for future reference
-            genderOld: this.state.genderState,
-            ageOld: this.state.ageState,
-            heightOld: this.state.heightState,
-            weightOld: this.state.weightOld,
-            exerciseOld: this.state.exerciseState,
-            allergyOld: this.state.allergyState,
-            aimOld: this.state.aimState
-        });
+        //Prepare the data
+        var newProfileData = {
+            'gender': this.state.genderState,
+            'age': this.state.ageState,
+            'height': this.state.heightState,
+            'weight': this.state.weightState,
+            'exercise': this.state.exerciseState,
+            'allergy': this.state.allergyState,
+            'aim': this.state.aimState
+        };
+
+        //Modify the parent state of profileData
+        this.props.modifyProfileData(newProfileData);
+
+        this.setState({editCancelButton: 'Edit',});
 
         //Save to Firebase
-        this.saveToFirebase();
+        this.saveToFirebase(newProfileData);
+    }
+
+    saveToFirebase = (profileData) => {
+        AsyncStorage.getItem("profileId").then(profileID => {
+            if (profileID === null) {
+                //Save profile data to Firebase and get its key as ID
+                var newProfileID = firebase.database().ref('profiles').push(profileData).key;
+                AsyncStorage.setItem("profileId", newProfileID).catch(error => console.log(error));
+            } else {
+                //Update profile data on Firebase
+                firebase.database().ref('profiles/' + profileID).update(profileData);
+            }
+        })
+        .catch(error => console.log(error));
     }
 
     addRemoveAllergies = (allergy) => {
@@ -141,8 +94,11 @@ export default class ProfileView extends React.Component {
         return (
             <Content padder>
                 <Form>
-                    {/* Edit/Cancel button */}
-                    <Button style={{ marginTop: 10 }} block primary={this.state.editCancelButton === 'Edit'} warning={this.state.editCancelButton === 'Cancel'} onPress={this.editCancelForm} >
+
+                    <Button style={{ marginTop: 10 }} block
+                        primary={this.state.editCancelButton === 'Edit'}
+                        warning={this.state.editCancelButton === 'Cancel'}
+                        onPress={this.editCancelForm} >
                         <Text>{this.state.editCancelButton}</Text>
                     </Button>
 

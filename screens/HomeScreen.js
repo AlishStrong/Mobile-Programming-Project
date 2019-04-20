@@ -1,17 +1,74 @@
 import React from 'react';
-import { StyleSheet, AsyncStorage } from 'react-native';
+import { StyleSheet, AsyncStorage, Alert } from 'react-native';
 import { Container, Content, Button, Text } from 'native-base';
+import firebase from 'firebase';
 
 export default class HomeScreen extends React.Component {
     static navigationOptions = { title: 'Home', };
 
     state = {
         loaded: false,
-        testState: 'Alisher Aliev'
+        testState: 'I was created by Parent',
+        profileData: {}
     }
 
     componentWillMount = () => {
-        this.setState({ loaded: true });
+        this.setState({anotherTestState: 'I got modified'});
+        //Check if there is a need for profileData fetching
+        if (JSON.stringify(this.state.profileData) === '{}') {
+            //Check whether profileID is saved
+            AsyncStorage.getItem("profileId").then((profileID) => {
+                //ProfileID is saved -> fetch data from Firebase
+                if (profileID !== null) {
+                    this.fetchFirebase(profileID);
+                }
+                //ProfileID is not saved -> fetch default data
+                else {
+                    this.setState({
+                        profileData: {
+                            "age": "25",
+                            "aim": "maintain-weight",
+                            "allergy": ["nuts", "gluten"],
+                            "exercise": "moderate",
+                            "gender": "male",
+                            "height": "180",
+                            "weight": "65"
+                        }
+                    });
+                    this.setState({ loaded: true });
+                }
+            }).catch(error => console.log(error));
+        } else {
+            this.setState({ loaded: true });
+        }
+
+    }
+
+    //Fetch data from Firebase
+    fetchFirebase = (profileID) => {
+        firebase.database().ref('profiles/' + profileID).once('value')
+            .then((snapshot) => {
+                this.setState({
+                    profileData: snapshot.val()
+                });
+                this.setState({ loaded: true });
+            })
+            .catch((error) => console.log(error));
+    }
+
+    modifyProfileData = (newProfileData) => {
+        // Alert.alert("Modification in HomeScreen");
+        this.setState({ profileData: newProfileData });
+    }
+
+    editTestState = (something) => {
+        this.setState({ showText: true });
+        if (something !== 'undefined') {
+            this.setState({ testState: something });
+            Alert.alert("you passed: " + something + ". Thus the new state is: " + this.state.testState);
+        } else {
+            Alert.alert("I am showing the default state: " + this.state.testState);
+        }
     }
 
     render() {
@@ -19,15 +76,16 @@ export default class HomeScreen extends React.Component {
         return (
             <Container>
                 <Content>
+                    <Text>{this.state.profileData.age}</Text>
                     <Text style={styles.headerStyle}>This is the home screen</Text>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block success
-                        onPress={() => navigate('ProfileRT')} >
+                        onPress={() => navigate('ProfileRT', { profileData: this.state.profileData, modifyParentProfileData: this.modifyProfileData })} >
                         <Text>Profile</Text>
                     </Button>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block info
-                        onPress={() => navigate('MyFoodRT')} >
+                        onPress={() => navigate('MyFoodRT', { passedItem: this.state.testState, passedFunction: this.editTestState, profileData: this.state.profileData })} >
                         <Text>My Food</Text>
                     </Button>
                     <Button disabled={!this.state.loaded}
