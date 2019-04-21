@@ -2,13 +2,20 @@ import React from 'react';
 import { View, Alert, AsyncStorage, Image } from 'react-native';
 import { Separator, List, ListItem, Content, Form, Item, Input, Button, Text, Label, Picker, Radio, Right, Left, H3, Header, Title, Body, Container } from 'native-base';
 import firebase from 'firebase';
+import Modal from "react-native-modal";
 
 const currentDate = new Date();
 
 export default class FoodList extends React.Component {
 
     state = {
+        //For modal
+        showEditModal: false,
+        showRemoveModal: false,
+        modalContent: {"name": "needed, otherwise JS crashes the app!"},
+
         foodInHouse: this.props.foodInHouse,
+        expiredFood: [],
         soonToExpireFood: [],
         safeFood: [],
         testFood: [
@@ -60,27 +67,41 @@ export default class FoodList extends React.Component {
                     "amount": "10"
                 },
                 "expiration": ["17", "05", "2019"]
+            },
+            {
+                "name": "cheese",
+                "quantity": {
+                    "type": "g",
+                    "amount": "100"
+                },
+                "expiration": ["20", "04", "2019"]
             }
-            
         ]
     }
 
     componentDidMount = () => {
         var foodArray = this.state.testFood;
-        foodArray.sort((a,b) => this.orderFoodByDate(a,b));
+        foodArray.sort((a, b) => this.orderFoodByDate(a, b));
 
-        var soonToExpire = foodArray.filter((item) => {
+        var expiredFood = [];
+        var soonToExpire = [];
+        var safeToEat = [];
+
+        foodArray.map((item) => {
             ed = item.expiration;
             var productExpiration = new Date(ed[2], (ed[1] - 1), ed[0]);
             var dayDifference = Math.round((productExpiration - currentDate) / (1000 * 60 * 60 * 24));
-            if (dayDifference < 7) {
-                return item;
+            if (dayDifference < 0) {
+                expiredFood.push(item);
+            } else if (dayDifference < 7) {
+                soonToExpire.push(item);
+            } else {
+                safeToEat.push(item);
             }
         });
 
-        var safeToEat = foodArray.filter((item) => !soonToExpire.includes(item));
-
         this.setState({
+            expiredFood: expiredFood,
             soonToExpireFood: soonToExpire,
             safeFood: safeToEat
         });
@@ -101,6 +122,66 @@ export default class FoodList extends React.Component {
         }
     }
 
+    removeFood = (foodName) => {
+        // var foodArray = this.state.testFood;
+        // var removeIndex = foodArray.indexOf(foodName);
+        // if (removeIndex !== -1) {
+        //     foodArray.splice(removeIndex, 1);
+        //     this.setState({ testFood: foodArray });
+        // }
+        Alert.alert("remove: " + foodName.name);
+    }
+
+    showRemoveModal = (item) => {
+        this.setState({
+            modalContent: item,
+            showRemoveModal: true
+        });
+    }
+
+    showEditModal = (item) => {
+        this.setState({
+            modalContent: item,
+            showEditModal: true
+        });
+    }
+
+    //You can return an array of objects for rendering!
+    renderFoodLists = () => {
+        var toReturn = [];
+        if (this.state.expiredFood.length > 0) {
+            toReturn.push(
+                <CurrentFoodList 
+                    foodData={this.state.expiredFood} 
+                    showEditModal={this.showEditModal}
+                    removeFood={this.showRemoveModal}
+                    separatorContent={{"message": "Expired!!!", "bgc": "#e77681"}} 
+                />
+            );
+        }
+        if (this.state.soonToExpireFood.length > 0) {
+            toReturn.push(
+                <CurrentFoodList 
+                    foodData={this.state.soonToExpireFood} 
+                    showEditModal={this.showEditModal}
+                    removeFood={this.showRemoveModal}
+                    separatorContent={{"message": "Soon to expire!", "bgc": "#ffc107"}} 
+                />
+            );
+        }
+        if (this.state.safeFood.length > 0) {
+            toReturn.push(
+                <CurrentFoodList 
+                    foodData={this.state.safeFood} 
+                    showEditModal={this.showEditModal}
+                    removeFood={this.showRemoveModal}
+                    separatorContent={{"message": "Other products", "bgc": "#28a745"}} 
+                />
+            );
+        }
+        return toReturn;
+    }
+
     render() {
         return (
             <Container>
@@ -110,25 +191,54 @@ export default class FoodList extends React.Component {
                     </Body>
                 </Header>
                 <Content>
-                    {/* Soon to expire products */}
-                    <SoonToExpireList soonToExpire={this.state.soonToExpireFood} />
-                    {/* Products that have a lot of time */}
-                    <SafeToEatList safeToEat={this.state.safeFood} />
+                    {
+                        /* List of products */
+                        this.renderFoodLists()
+                    }
+
+                    {/* Modal for edit */}
+                    <Modal isVisible={this.state.showEditModal}>
+                        <View style={{
+                             backgroundColor: "white",
+                             padding: 22,
+                             justifyContent: "center",
+                             alignItems: "center",
+                             borderRadius: 4,
+                             borderColor: "rgba(0, 0, 0, 0.1)",
+                        }}>
+                            <Text>Content: {this.state.modalContent.name}</Text>
+                            <Button onPress={() => this.setState({ showEditModal: false })} ><Text>Hide me!</Text></Button>
+                        </View>
+                    </Modal>
+
+                    {/* Modal for removal */}
+                    <Modal isVisible={this.state.showRemoveModal}>
+                        <View style={{
+                             backgroundColor: "white",
+                             padding: 22,
+                             justifyContent: "center",
+                             alignItems: "center",
+                             borderRadius: 4,
+                             borderColor: "rgba(0, 0, 0, 0.1)",
+                        }}>
+                            <Text>Are you sure you want to remove {this.state.modalContent.name.replace('-', ' ')} from your food list?</Text>
+                            <Button onPress={() => this.setState({ showRemoveModal: false })} ><Text>Hide me!</Text></Button>
+                        </View>
+                    </Modal>
                 </Content>
             </Container>
         );
     }
 }
 
-class SoonToExpireList extends React.Component {
-
+class CurrentFoodList extends React.Component {
     render() {
         return (
             <Content>
-                <Separator bordered style={{ backgroundColor: '#e77681' }}>
-                    <Text style={{ color: '#ffffff', fontSize: 16 }}>Soon to expire!</Text>
+                <Separator bordered style={{ backgroundColor: this.props.separatorContent.bgc }}>
+                    <Text style={{ color: '#ffffff', fontSize: 16 }}>{this.props.separatorContent.message}</Text>
                 </Separator>
-                <List dataArray={this.props.soonToExpire} renderRow={(item) => {
+                <List dataArray={this.props.foodData} renderRow={(item) => {
                     return <ListItem thumbnail>
                         <Body>
                             <Text>{item.name.charAt(0).toUpperCase() + item.name.slice(1).replace('-', ' ')}</Text>
@@ -136,40 +246,11 @@ class SoonToExpireList extends React.Component {
                             <Text note numberOfLines={1}>Quantity: {item.quantity.amount} {item.quantity.type}</Text>
                         </Body>
                         <Right>
-                            <Button transparent>
+                            <Button transparent onPress={() => this.props.showEditModal(item)}
+                                style={{ marginBottom: 5 }}>
                                 <Text>Edit</Text>
                             </Button>
-                            <Button transparent>
-                                <Text>Remove</Text>
-                            </Button>
-                        </Right>
-                    </ListItem>
-                }}>
-                </List>
-            </Content>
-        );
-    }
-}
-
-class SafeToEatList extends React.Component {
-    render() {
-        return (
-            <Content>
-                <Separator bordered bordered style={{ backgroundColor: '#81e776' }}>
-                    <Text style={{ color: '#ffffff', fontSize: 16 }}>Other products</Text>
-                </Separator>
-                <List dataArray={this.props.safeToEat} renderRow={(item) => {
-                    return <ListItem thumbnail>
-                        <Body>
-                            <Text>{item.name.charAt(0).toUpperCase() + item.name.slice(1).replace('-', ' ')}</Text>
-                            <Text note numberOfLines={1}>Expires on: {item.expiration.join(".")}</Text>
-                            <Text note numberOfLines={1}>Quantity: {item.quantity.amount} {item.quantity.type}</Text>
-                        </Body>
-                        <Right>
-                            <Button transparent>
-                                <Text>Edit</Text>
-                            </Button>
-                            <Button transparent>
+                            <Button transparent onPress={() => this.props.removeFood(item)}>
                                 <Text>Remove</Text>
                             </Button>
                         </Right>
