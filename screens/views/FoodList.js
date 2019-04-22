@@ -12,7 +12,7 @@ export default class FoodList extends React.Component {
         //For modal
         showEditModal: false,
         showRemoveModal: false,
-        modalContent: {"name": "needed, otherwise JS crashes the app!"},
+        modalContent: { "name": "needed, otherwise JS crashes the app!" },
 
         foodInHouse: this.props.foodInHouse,
         expiredFood: [],
@@ -81,30 +81,32 @@ export default class FoodList extends React.Component {
 
     componentDidMount = () => {
         var foodArray = this.state.testFood;
-        foodArray.sort((a, b) => this.orderFoodByDate(a, b));
+        if (foodArray.length > 0) {
+            foodArray.sort((a, b) => this.orderFoodByDate(a, b));
 
-        var expiredFood = [];
-        var soonToExpire = [];
-        var safeToEat = [];
+            var expiredFood = [];
+            var soonToExpire = [];
+            var safeToEat = [];
 
-        foodArray.map((item) => {
-            ed = item.expiration;
-            var productExpiration = new Date(ed[2], (ed[1] - 1), ed[0]);
-            var dayDifference = Math.round((productExpiration - currentDate) / (1000 * 60 * 60 * 24));
-            if (dayDifference < 0) {
-                expiredFood.push(item);
-            } else if (dayDifference < 7) {
-                soonToExpire.push(item);
-            } else {
-                safeToEat.push(item);
-            }
-        });
+            foodArray.map((item) => {
+                ed = item.expiration;
+                var productExpiration = new Date(ed[2], (ed[1] - 1), ed[0]);
+                var dayDifference = Math.round((productExpiration - currentDate) / (1000 * 60 * 60 * 24));
+                if (dayDifference < 0) {
+                    expiredFood.push(item);
+                } else if (dayDifference < 7) {
+                    soonToExpire.push(item);
+                } else {
+                    safeToEat.push(item);
+                }
+            });
 
-        this.setState({
-            expiredFood: expiredFood,
-            soonToExpireFood: soonToExpire,
-            safeFood: safeToEat
-        });
+            this.setState({
+                expiredFood: expiredFood,
+                soonToExpireFood: soonToExpire,
+                safeFood: safeToEat
+            });
+        }
     }
 
     //Orders food by its expiration date in ascending order
@@ -122,19 +124,41 @@ export default class FoodList extends React.Component {
         }
     }
 
-    removeFood = (foodName) => {
-        // var foodArray = this.state.testFood;
-        // var removeIndex = foodArray.indexOf(foodName);
-        // if (removeIndex !== -1) {
-        //     foodArray.splice(removeIndex, 1);
-        //     this.setState({ testFood: foodArray });
-        // }
-        Alert.alert("remove: " + foodName.name);
+    removeFood = () => {
+        var source = this.state.modalContent.source;
+        var nameToRemove = this.state.modalContent.name;
+        var oldFoodState = [];
+        if (source === "Expired!!!") {
+            oldFoodState = this.state.expiredFood;
+            var newFoodState = oldFoodState.filter((item) => item.name !== nameToRemove);
+            this.setState({
+                expiredFood: newFoodState
+            });
+        }
+        else if (source === "Soon to expire!") {
+            oldFoodState = this.state.soonToExpireFood;
+            var newFoodState = oldFoodState.filter((item) => item.name !== nameToRemove);
+            this.setState({
+                soonToExpireFood: newFoodState
+            });
+        }
+        else {
+            oldFoodState = this.state.safeFood;
+            var newFoodState = oldFoodState.filter((item) => item.name !== nameToRemove);
+            this.setState({
+                safeFood: newFoodState
+            });
+        }
+        this.setState({
+            showRemoveModal: false
+        });
     }
 
-    showRemoveModal = (item) => {
+    showRemoveModal = (item, source) => {
+        var foodToRemove = item;
+        foodToRemove.source = source;
         this.setState({
-            modalContent: item,
+            modalContent: foodToRemove,
             showRemoveModal: true
         });
     }
@@ -151,33 +175,43 @@ export default class FoodList extends React.Component {
         var toReturn = [];
         if (this.state.expiredFood.length > 0) {
             toReturn.push(
-                <CurrentFoodList 
-                    foodData={this.state.expiredFood} 
+                <CurrentFoodList
+                    foodData={this.state.expiredFood}
                     showEditModal={this.showEditModal}
                     removeFood={this.showRemoveModal}
-                    separatorContent={{"message": "Expired!!!", "bgc": "#e77681"}} 
+                    separatorContent={{ "message": "Expired!!!", "bgc": "#e77681" }}
                 />
             );
         }
         if (this.state.soonToExpireFood.length > 0) {
             toReturn.push(
-                <CurrentFoodList 
-                    foodData={this.state.soonToExpireFood} 
+                <CurrentFoodList
+                    foodData={this.state.soonToExpireFood}
                     showEditModal={this.showEditModal}
                     removeFood={this.showRemoveModal}
-                    separatorContent={{"message": "Soon to expire!", "bgc": "#ffc107"}} 
+                    separatorContent={{ "message": "Soon to expire!", "bgc": "#ffc107" }}
                 />
             );
         }
         if (this.state.safeFood.length > 0) {
             toReturn.push(
-                <CurrentFoodList 
-                    foodData={this.state.safeFood} 
+                <CurrentFoodList
+                    foodData={this.state.safeFood}
                     showEditModal={this.showEditModal}
                     removeFood={this.showRemoveModal}
-                    separatorContent={{"message": "Other products", "bgc": "#28a745"}} 
+                    separatorContent={{ "message": "Other products", "bgc": "#28a745" }}
                 />
             );
+        }
+        if (toReturn.length === 0) {
+            return <View style={{
+                flex: 1,
+                flexDirection: "column",
+                alignItems: "center",
+                paddingTop: 20
+            }}>
+                <Text>There is no food currently</Text>
+            </View>
         }
         return toReturn;
     }
@@ -199,12 +233,12 @@ export default class FoodList extends React.Component {
                     {/* Modal for edit */}
                     <Modal isVisible={this.state.showEditModal}>
                         <View style={{
-                             backgroundColor: "white",
-                             padding: 22,
-                             justifyContent: "center",
-                             alignItems: "center",
-                             borderRadius: 4,
-                             borderColor: "rgba(0, 0, 0, 0.1)",
+                            backgroundColor: "white",
+                            padding: 22,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            borderRadius: 4,
+                            borderColor: "rgba(0, 0, 0, 0.1)",
                         }}>
                             <Text>Content: {this.state.modalContent.name}</Text>
                             <Button onPress={() => this.setState({ showEditModal: false })} ><Text>Hide me!</Text></Button>
@@ -214,15 +248,33 @@ export default class FoodList extends React.Component {
                     {/* Modal for removal */}
                     <Modal isVisible={this.state.showRemoveModal}>
                         <View style={{
-                             backgroundColor: "white",
-                             padding: 22,
-                             justifyContent: "center",
-                             alignItems: "center",
-                             borderRadius: 4,
-                             borderColor: "rgba(0, 0, 0, 0.1)",
+                            backgroundColor: "white",
+                            padding: 22,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            borderRadius: 4,
+                            borderColor: "rgba(0, 0, 0, 0.1)",
                         }}>
-                            <Text>Are you sure you want to remove {this.state.modalContent.name.replace('-', ' ')} from your food list?</Text>
-                            <Button onPress={() => this.setState({ showRemoveModal: false })} ><Text>Hide me!</Text></Button>
+                            <View>
+                                <Text>Are you sure you want to remove
+                                    <Text style={{ fontWeight: "bold" }}> {this.state.modalContent.name.replace('-', ' ')} </Text>
+                                    from your food list?
+                                </Text>
+                            </View>
+                            <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 10 }}>
+                                <Button danger onPress={() => this.removeFood()}
+                                    style={{ width: "30%", marginRight: "10%" }} >
+                                    <Text style={{ marginLeft: "15%" }}>
+                                        Yes
+                                    </Text>
+                                </Button>
+                                <Button success onPress={() => this.setState({ showRemoveModal: false })}
+                                    style={{ width: "30%" }} >
+                                    <Text style={{ marginLeft: "18%" }}>
+                                        NO
+                                    </Text>
+                                </Button>
+                            </View>
                         </View>
                     </Modal>
                 </Content>
@@ -250,7 +302,7 @@ class CurrentFoodList extends React.Component {
                                 style={{ marginBottom: 5 }}>
                                 <Text>Edit</Text>
                             </Button>
-                            <Button transparent onPress={() => this.props.removeFood(item)}>
+                            <Button transparent onPress={() => this.props.removeFood(item, this.props.separatorContent.message)}>
                                 <Text>Remove</Text>
                             </Button>
                         </Right>
