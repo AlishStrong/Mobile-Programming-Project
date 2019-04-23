@@ -3,6 +3,7 @@ import { StyleSheet, AsyncStorage, Alert } from 'react-native';
 import { Container, Content, Button, Text } from 'native-base';
 import firebase from 'firebase';
 
+//The main screen that navigates to other screens, aka GrandParent
 export default class HomeScreen extends React.Component {
     static navigationOptions = { title: 'Home', };
 
@@ -10,13 +11,14 @@ export default class HomeScreen extends React.Component {
         loaded: false,
         testState: 'I was created by Parent',
         profileData: {},
-        foodInHouse: {}
+        foodInHouse: []
     }
 
     componentWillMount = () => {
+        
         this.setState({ anotherTestState: 'I got modified' });
         //Check if there is a need for profileData fetching
-        if (JSON.stringify(this.state.profileData) === '{}') {
+        if (JSON.stringify(this.state.profileData) === '{}' ) {
             //Check whether profileID is saved
             AsyncStorage.getItem("profileId").then((profileID) => {
                 //ProfileID is saved -> fetch data from Firebase
@@ -57,7 +59,7 @@ export default class HomeScreen extends React.Component {
             })
             .catch((error) => console.log(error));
         //Fetch foodInHouse
-        firebase.database().ref('housefood/' + profileID).once('value')
+        firebase.database().ref('food/' + profileID).once('value')
             .then((snapshot) => {
                 this.setState({
                     foodInHouse: snapshot.val()
@@ -67,7 +69,6 @@ export default class HomeScreen extends React.Component {
     }
 
     modifyProfileData = (newProfileData) => {
-        // Alert.alert("Modification in HomeScreen");
         this.setState({ profileData: newProfileData });
     }
 
@@ -89,17 +90,17 @@ export default class HomeScreen extends React.Component {
                     <Text style={styles.headerStyle}>This is the home screen</Text>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block success
-                        onPress={() => navigate('ProfileRT', { profileData: this.state.profileData, modifyParentProfileData: this.modifyProfileData })} >
+                        onPress={() => navigate('ProfileRT', { profileData: this.state.profileData, modifyGrandParentProfileData: this.modifyProfileData })} >
                         <Text>Profile</Text>
                     </Button>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block info
-                        onPress={() => navigate('MyFoodRT', { foodInHouse: this.state.foodInHouse, passedItem: this.state.testState, passedFunction: this.editTestState, profileData: this.state.profileData })} >
+                        onPress={() => navigate('MyFoodRT', { foodInHouse: this.state.foodInHouse })} >
                         <Text>My Food</Text>
                     </Button>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block warning
-                        onPress={() => navigate('RecipesRT')} >
+                        onPress={() => navigate('RecipesRT', { foodInHouse: this.state.foodInHouse })} >
                         <Text>Recipes</Text>
                     </Button>
                     <Button disabled={!this.state.loaded}

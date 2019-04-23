@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Alert, AsyncStorage, Image } from 'react-native';
-import { Separator, List, ListItem, Content, Form, Item, Input, Button, Text, Label, Picker, Radio, Right, Left, H3, Header, Title, Body, Container } from 'native-base';
+import { View, TextInput } from 'react-native';
+import { Separator, List, ListItem, Content, Button, Text, Right, Header, Title, Body, Container } from 'native-base';
 import firebase from 'firebase';
-import Modal from "react-native-modal";
+import Modal from "react-native-modal"; //Does not support native-base properly components
 
 const currentDate = new Date();
 
@@ -12,76 +12,24 @@ export default class FoodList extends React.Component {
         //For modal
         showEditModal: false,
         showRemoveModal: false,
-        modalContent: { "name": "needed, otherwise JS crashes the app!" },
+        modalContent: {
+            "name": "test",
+            "quantity": {
+                "type": "test",
+                "amount": "test"
+            },
+            "expiration": ["test"]
+        },
 
         foodInHouse: this.props.foodInHouse,
         expiredFood: [],
         soonToExpireFood: [],
         safeFood: [],
-        testFood: [
-            {
-                "name": "chicken-breast",
-                "quantity": {
-                    "type": "g",
-                    "amount": "500"
-                },
-                "expiration": ["24", "04", "2019"]
-            },
-            {
-                "name": "potato",
-                "quantity": {
-                    "type": "g",
-                    "amount": "2000"
-                },
-                "expiration": ["30", "06", "2019"]
-            },
-            {
-                "name": "tomato",
-                "quantity": {
-                    "type": "g",
-                    "amount": "200"
-                },
-                "expiration": ["10", "05", "2019"]
-            }
-            ,
-            {
-                "name": "milk",
-                "quantity": {
-                    "type": "l",
-                    "amount": "1"
-                },
-                "expiration": ["25", "04", "2019"]
-            },
-            {
-                "name": "carrot",
-                "quantity": {
-                    "type": "g",
-                    "amount": "700"
-                },
-                "expiration": ["20", "05", "2019"]
-            },
-            {
-                "name": "eggs",
-                "quantity": {
-                    "type": "pieces",
-                    "amount": "10"
-                },
-                "expiration": ["17", "05", "2019"]
-            },
-            {
-                "name": "cheese",
-                "quantity": {
-                    "type": "g",
-                    "amount": "100"
-                },
-                "expiration": ["20", "04", "2019"]
-            }
-        ]
     }
 
     componentDidMount = () => {
-        var foodArray = this.state.testFood;
-        if (foodArray.length > 0) {
+        var foodArray = this.state.foodInHouse;
+        if (foodArray !== null && foodArray.length > 0) {
             foodArray.sort((a, b) => this.orderFoodByDate(a, b));
 
             var expiredFood = [];
@@ -221,7 +169,7 @@ export default class FoodList extends React.Component {
             <Container>
                 <Header>
                     <Body>
-                        <Title>Products in my shelf</Title>
+                        <Title>Products in my shelf {this.props.testState}</Title>
                     </Body>
                 </Header>
                 <Content>
@@ -233,15 +181,244 @@ export default class FoodList extends React.Component {
                     {/* Modal for edit */}
                     <Modal isVisible={this.state.showEditModal}>
                         <View style={{
+                            flexDirection: "column",
                             backgroundColor: "white",
                             padding: 22,
                             justifyContent: "center",
-                            alignItems: "center",
+                            alignItems: 'stretch',
                             borderRadius: 4,
-                            borderColor: "rgba(0, 0, 0, 0.1)",
+                            borderColor: "rgba(0, 0, 0, 0.1)"
                         }}>
-                            <Text>Content: {this.state.modalContent.name}</Text>
-                            <Button onPress={() => this.setState({ showEditModal: false })} ><Text>Hide me!</Text></Button>
+
+                            {/* Title of the modal */}
+                            <Text style={{ 
+                                    fontWeight: "bold", 
+                                    fontSize: 20, 
+                                    marginBottom: 10
+                                }}
+                            >
+                                Edit {this.state.modalContent.name.replace('-', ' ')}
+                            </Text>
+
+                            {/* Prompt for food name */}
+                            <View style={{ flexDirection: "column", marginBottom: 10 }} >
+                                <Text style={{ fontWeight: "bold" }}>
+                                    Food name:
+                                </Text>
+                                <TextInput style={{ 
+                                        fontSize: 16,
+                                        color: "#494949",
+                                        borderWidth: 2, 
+                                        borderColor: "#dfdfdf",
+                                        borderRadius: 6,
+                                        paddingLeft: 5
+                                    }} 
+                                    value={this.state.modalContent.name.replace('-', ' ')}
+                                    onChangeText={(newName) => this.setState(prevState => ({
+                                        modalContent: {
+                                            ...prevState.modalContent,
+                                            name: newName
+                                        }
+                                    }))} 
+                                />
+                            </View>
+                            
+                            {/* Promt for expiration date */}
+                            <View style={{ flexDirection: "column", marginBottom: 10 }}>
+                                <Text style={{ fontWeight: "bold" }}>Expiration date</Text>
+                                <View style={{ flexDirection: "row" }}>
+                                    {/* Day */}
+                                    <View style={{ width: 70 }}>
+                                        <Text style={{ fontWeight: "bold" }}>Day:</Text>
+                                        <TextInput style={{ 
+                                                fontSize: 16,
+                                                color: "#494949",
+                                                borderWidth: 2, 
+                                                borderColor: "#dfdfdf",
+                                                borderRadius: 6,
+                                                paddingLeft: 5
+                                            }} 
+                                            keyboardType={"numeric"}
+                                            value={this.state.modalContent.expiration[0]}
+                                            onChangeText={(newDay) => {
+                                                var forNewExp = this.state.modalContent.expiration;
+                                                forNewExp[0] = newDay;
+                                                this.setState(prevState => ({
+                                                    modalContent: {
+                                                        ...prevState.modalContent,
+                                                        expiration: forNewExp
+                                                    }
+                                                }))
+                                            }}
+                                        />
+                                    </View>
+
+                                    {/* Month */}
+                                    <View style={{ width: 70, marginLeft: 10 }}>
+                                        <Text style={{ fontWeight: "bold" }}>Month:</Text>
+                                        <TextInput style={{ 
+                                                fontSize: 16,
+                                                color: "#494949",
+                                                borderWidth: 2, 
+                                                borderColor: "#dfdfdf",
+                                                borderRadius: 6,
+                                                paddingLeft: 5
+                                            }} 
+                                            keyboardType={"numeric"}
+                                            value={this.state.modalContent.expiration[1]}
+                                            onChangeText={(newMonth) => {
+                                                var forNewExp = this.state.modalContent.expiration;
+                                                forNewExp[1] = newMonth;
+                                                this.setState(prevState => ({
+                                                    modalContent: {
+                                                        ...prevState.modalContent,
+                                                        expiration: forNewExp
+                                                    }
+                                                }))
+                                            }}
+                                        />
+                                    </View>
+
+                                    {/* Year */}
+                                    <View style={{ width: 70, marginLeft: 10 }}>
+                                        <Text style={{ fontWeight: "bold" }}>Year:</Text>
+                                        <TextInput style={{ 
+                                                fontSize: 16,
+                                                color: "#494949",
+                                                borderWidth: 2, 
+                                                borderColor: "#dfdfdf",
+                                                borderRadius: 6,
+                                                paddingLeft: 5
+                                            }} 
+                                            keyboardType={"numeric"}
+                                            value={this.state.modalContent.expiration[2]}
+                                            onChangeText={(newYear) => {
+                                                var forNewExp = this.state.modalContent.expiration;
+                                                forNewExp[2] = newYear;
+                                                this.setState(prevState => ({
+                                                    modalContent: {
+                                                        ...prevState.modalContent,
+                                                        expiration: forNewExp
+                                                    }
+                                                }))
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+
+                            {/* Prompt for amount */}
+                            <View style={{ flexDirection: "column", marginBottom: 10 }}>
+                                <Text style={{ fontWeight: "bold" }}>Amount:</Text>
+                                <TextInput style={{ 
+                                        fontSize: 16,
+                                        color: "#494949",
+                                        borderWidth: 2, 
+                                        borderColor: "#dfdfdf",
+                                        borderRadius: 6,
+                                        paddingLeft: 5
+                                    }} 
+                                    value={this.state.modalContent.quantity.amount}
+                                    onChangeText={(newAmount) => {
+                                        var newQuantity = this.state.modalContent.quantity;
+                                        newQuantity.amount = newAmount;
+                                        this.setState(prevState => ({
+                                            modalContent: {
+                                                ...prevState.modalContent,
+                                                quantity: newQuantity
+                                            }
+                                        }))
+                                    }} 
+                                />
+                            </View>
+                            
+                            {/* Selection of units of measurements */}
+                            <View style={{ flexDirection: "column", marginBottom: 10 }}>
+                                <Text style={{ fontWeight: "bold" }}>Measurement unit:</Text>
+                                <View style={{ flexDirection: "row", marginVertical: 5 }}>
+
+                                    {/* Gram option */}
+                                    <Button 
+                                        info rounded 
+                                        bordered={this.state.modalContent.quantity.type !== "g"}
+                                        style={{ height: 30, marginLeft: 15, marginRight: 10 }} 
+                                        onPress={() => {
+                                            var newQuantity = this.state.modalContent.quantity;
+                                            newQuantity.type = "g";
+                                            this.setState(prevState => ({
+                                                modalContent: {
+                                                    ...prevState.modalContent,
+                                                    quantity: newQuantity
+                                                }
+                                            }))
+                                        }}
+                                    >
+                                        <Text style={{ fontSize: 10 }}>
+                                            Grams
+                                        </Text>
+                                    </Button>
+
+                                    {/* Litre option */}
+                                    <Button 
+                                        info rounded 
+                                        bordered={this.state.modalContent.quantity.type !== "l"}
+                                        style={{ height: 30 }} 
+                                        onPress={() => {
+                                            var newQuantity = this.state.modalContent.quantity;
+                                            newQuantity.type = "l";
+                                            this.setState(prevState => ({
+                                                modalContent: {
+                                                    ...prevState.modalContent,
+                                                    quantity: newQuantity
+                                                }
+                                            }))
+                                        }}
+                                    >
+                                        <Text style={{ fontSize: 10 }}>
+                                            Litres
+                                        </Text>
+                                    </Button>
+
+                                    {/* Piece option */}
+                                    <Button 
+                                        info rounded 
+                                        bordered={this.state.modalContent.quantity.type !== "pcs"}
+                                        style={{ height: 30, marginLeft: 10 }} 
+                                        onPress={() => {
+                                            var newQuantity = this.state.modalContent.quantity;
+                                            newQuantity.type = "pcs";
+                                            this.setState(prevState => ({
+                                                modalContent: {
+                                                    ...prevState.modalContent,
+                                                    quantity: newQuantity
+                                                }
+                                            }))
+                                        }}
+                                    >
+                                        <Text style={{ fontSize: 10 }}>
+                                            Pieces
+                                        </Text>
+                                    </Button>
+                                </View>
+                            </View>
+                            
+                            {/* Action buttons */}
+                            <View style={{ flexDirection: "column", alignItems: 'center', marginTop: 5 }}>
+                                <View style={{ flexDirection: "row" }}>
+                                    <Button success onPress={() => this.editFood()}
+                                        style={{ marginRight: "10%" }} >
+                                        <Text style={{}}>
+                                            Save
+                                        </Text>
+                                    </Button>
+                                    <Button warning onPress={() => this.setState({ showEditModal: false })}
+                                        style={{}} >
+                                        <Text style={{}}>
+                                            Cancel
+                                        </Text>
+                                    </Button>
+                                </View>
+                            </View>
                         </View>
                     </Modal>
 

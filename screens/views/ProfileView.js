@@ -54,7 +54,7 @@ export default class ProfileView extends React.Component {
         };
 
         //Modify the parent state of profileData
-        this.props.modifyProfileData(newProfileData);
+        this.props.modifyParentProfileData(newProfileData);
 
         this.setState({editCancelButton: 'Edit',});
 

@@ -12,6 +12,7 @@ import { Spinner } from 'native-base';
 
 import firebase from 'firebase';
 
+//Navigation routes
 const MyRoutes = createStackNavigator({
   HomeRT: {
     screen: HomeScreen
@@ -35,6 +36,7 @@ const MyRoutes = createStackNavigator({
 
 const AppContainer =  createAppContainer(MyRoutes);
 
+//Configuration data for Google Firebase enabling
 const config = {
   apiKey: "AIzaSyBO-c0VzzQ0YNa2OsqoSNjgyaB1L2vmMog",
   authDomain: "mobile-prog-course.firebaseapp.com",
@@ -47,6 +49,7 @@ if (!firebase.apps.length) {
   firebase.initializeApp(config);
 }
 
+//The main class, aka Ancestor 
 export default class App extends React.Component {
 
   state={

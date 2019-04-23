@@ -5,17 +5,18 @@ import { Container, Content, Form, Item, Input, Button, Text, Label, Picker, Foo
 import ProfileView from "./views/ProfileView";
 import DietRecView from "./views/DietRecView";
 
+//ProfileScreen - parent to ProfileView and DietRecView
 export default class ProfileScreen extends React.Component {
     static navigationOptions = { title: 'Profile', };
 
     state = {
-        //State is of profileData is needed because its this class has two children!
+        //State of profileData is needed for two children of ProfileScreen!
         profileData: this.props.navigation.state.params.profileData
     }
 
-    modifyProfileData = (newProfileData) => {
+    modifyParentProfileData = (newProfileData) => {
         this.setState({profileData: newProfileData});
-        this.props.navigation.state.params.modifyParentProfileData(newProfileData);
+        this.props.navigation.state.params.modifyGrandParentProfileData(newProfileData);
     }
 
     render() {
@@ -25,7 +26,7 @@ export default class ProfileScreen extends React.Component {
                 <Tabs tabBarPosition="bottom">
                     <Tab heading="Profile" tabStyle={{ width: 100 }} activeTabStyle={{ width: 100 }} tab>
                         <Content>
-                            <ProfileView profileData={this.state.profileData} modifyProfileData={this.modifyProfileData} />
+                            <ProfileView profileData={this.state.profileData} modifyParentProfileData={this.modifyParentProfileData} />
                         </Content>
                     </Tab>
                     <Tab heading="Diet Recommendation" tabStyle={{ width: 100 }} activeTabStyle={{ width: 100 }}>

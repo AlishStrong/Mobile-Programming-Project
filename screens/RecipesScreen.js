@@ -29,6 +29,7 @@ export default class RecipesScreen extends React.Component {
             // </View>
             <Container>
                 <Content>
+                    <Text>{this.props.navigation.state.params.foodInHouse.length}</Text>
                     <Form>
                         <Picker
                             note
