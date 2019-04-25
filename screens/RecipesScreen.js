@@ -3,6 +3,8 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Container, Header, Content, Picker, Form } from "native-base";
 
+import firebase from 'firebase';
+
 export default class RecipesScreen extends React.Component {
     static navigationOptions = { title: 'Recipes', };
 
@@ -12,6 +14,8 @@ export default class RecipesScreen extends React.Component {
     }
 
     render() {
+        var foodDataArray = this.props.navigation.state.params.foodInHouse;
+        var foodDataRef = firebase.database().ref('food/-Lcl-q_2hhXlMfvnksoJ').on("value", (snapshot) => foodDataArray = snapshot.val());
         return (
             // <View>
             //     <Text>This is the recipes screen</Text>
@@ -29,7 +33,7 @@ export default class RecipesScreen extends React.Component {
             // </View>
             <Container>
                 <Content>
-                    <Text>{this.props.navigation.state.params.foodInHouse.length}</Text>
+                    <Text>{foodDataArray.length}</Text>
                     <Form>
                         <Picker
                             note

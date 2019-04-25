@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput } from 'react-native';
+import { View, TextInput, FlatList, AsyncStorage, Alert } from 'react-native';
 import { Separator, List, ListItem, Content, Button, Text, Right, Header, Title, Body, Container } from 'native-base';
 import firebase from 'firebase';
 import Modal from "react-native-modal"; //Does not support native-base properly components
@@ -21,40 +21,108 @@ export default class FoodList extends React.Component {
             "expiration": ["test"]
         },
 
-        foodInHouse: this.props.foodInHouse,
-        expiredFood: [],
-        soonToExpireFood: [],
-        safeFood: [],
+        // foodInHouse: this.props.foodInHouse,
+        // expiredFood: [],
+        // soonToExpireFood: [],
+        // safeFood: [],
+
     }
 
-    componentDidMount = () => {
-        var foodArray = this.state.foodInHouse;
-        if (foodArray !== null && foodArray.length > 0) {
-            foodArray.sort((a, b) => this.orderFoodByDate(a, b));
+    // componentDidMount = () => {
+    //     var foodArray = this.state.foodInHouse;
+    //     if (foodArray !== null && foodArray.length > 0) {
+    //         foodArray.sort((a, b) => this.orderFoodByDate(a, b));
 
+    //         var expiredFood = [];
+    //         var soonToExpire = [];
+    //         var safeToEat = [];
+
+    //         foodArray.map((item) => {
+    //             ed = item.expiration;
+    //             var productExpiration = new Date(ed[2], (ed[1] - 1), ed[0]);
+    //             var dayDifference = Math.round((productExpiration - currentDate) / (1000 * 60 * 60 * 24));
+    //             if (dayDifference < 0) {
+    //                 expiredFood.push(item);
+    //             } else if (dayDifference < 7) {
+    //                 soonToExpire.push(item);
+    //             } else {
+    //                 safeToEat.push(item);
+    //             }
+    //         });
+
+    //         this.setState({
+    //             expiredFood: expiredFood,
+    //             soonToExpireFood: soonToExpire,
+    //             safeFood: safeToEat
+    //         });
+    //     }
+    // }
+
+
+    //You can return an array of objects for rendering!
+    renderFoodLists = (foodArray) => {
+        toReturn = [];
+
+        if(foodArray !== null && foodArray.length > 0) {
             var expiredFood = [];
-            var soonToExpire = [];
-            var safeToEat = [];
+            var soonToExpireFood = [];
+            var safeToEatFood = [];
 
-            foodArray.map((item) => {
-                ed = item.expiration;
-                var productExpiration = new Date(ed[2], (ed[1] - 1), ed[0]);
-                var dayDifference = Math.round((productExpiration - currentDate) / (1000 * 60 * 60 * 24));
-                if (dayDifference < 0) {
-                    expiredFood.push(item);
-                } else if (dayDifference < 7) {
-                    soonToExpire.push(item);
-                } else {
-                    safeToEat.push(item);
-                }
+            foodArray.sort((a, b) => this.orderFoodByDate(a, b))
+                .map((item) => {
+                    var ed = item.expiration;
+                    var productExpiration = new Date(ed[2], (ed[1] - 1), ed[0]);
+                    var dayDifference = Math.round((productExpiration - currentDate) / (1000 * 60 * 60 * 24));
+                    if (dayDifference < 0) {
+                        expiredFood.push(item);
+                    } else if (dayDifference < 7) {
+                        soonToExpireFood.push(item);
+                    } else {
+                        safeToEatFood.push(item);
+                    }
             });
 
-            this.setState({
-                expiredFood: expiredFood,
-                soonToExpireFood: soonToExpire,
-                safeFood: safeToEat
-            });
+            if (expiredFood.length > 0) {
+                toReturn.push(
+                    <CurrentFoodList
+                        key={"Expired!!!"}
+                        foodData={expiredFood}
+                        showEditModal={this.showEditModal}
+                        removeFood={this.showRemoveModal}
+                        separatorContent={{ "message": "Expired!!!", "bgc": "#e77681" }}
+                    />
+                );
+            }
+            if (soonToExpireFood.length > 0) {
+                toReturn.push(
+                    <CurrentFoodList
+                        key={"Soon to expire!"}
+                        foodData={soonToExpireFood}
+                        showEditModal={this.showEditModal}
+                        removeFood={this.showRemoveModal}
+                        separatorContent={{ "message": "Soon to expire!", "bgc": "#ffc107" }}
+                    />
+                );
+            }
+            if (safeToEatFood.length > 0) {
+                toReturn.push(
+                    <CurrentFoodList
+                        key={"Other products"}
+                        foodData={safeToEatFood}
+                        showEditModal={this.showEditModal}
+                        removeFood={this.showRemoveModal}
+                        separatorContent={{ "message": "Other products", "bgc": "#28a745" }}
+                    />
+                );
+            }
         }
+
+        else {
+            alert.alert("There is no food");
+            return <Text>There is no food</Text>
+        }
+
+        return toReturn;
     }
 
     //Orders food by its expiration date in ascending order
@@ -118,64 +186,92 @@ export default class FoodList extends React.Component {
         });
     }
 
-    //You can return an array of objects for rendering!
-    renderFoodLists = () => {
-        var toReturn = [];
-        if (this.state.expiredFood.length > 0) {
-            toReturn.push(
-                <CurrentFoodList
-                    foodData={this.state.expiredFood}
-                    showEditModal={this.showEditModal}
-                    removeFood={this.showRemoveModal}
-                    separatorContent={{ "message": "Expired!!!", "bgc": "#e77681" }}
-                />
-            );
-        }
-        if (this.state.soonToExpireFood.length > 0) {
-            toReturn.push(
-                <CurrentFoodList
-                    foodData={this.state.soonToExpireFood}
-                    showEditModal={this.showEditModal}
-                    removeFood={this.showRemoveModal}
-                    separatorContent={{ "message": "Soon to expire!", "bgc": "#ffc107" }}
-                />
-            );
-        }
-        if (this.state.safeFood.length > 0) {
-            toReturn.push(
-                <CurrentFoodList
-                    foodData={this.state.safeFood}
-                    showEditModal={this.showEditModal}
-                    removeFood={this.showRemoveModal}
-                    separatorContent={{ "message": "Other products", "bgc": "#28a745" }}
-                />
-            );
-        }
-        if (toReturn.length === 0) {
-            return <View style={{
-                flex: 1,
-                flexDirection: "column",
-                alignItems: "center",
-                paddingTop: 20
-            }}>
-                <Text>There is no food currently</Text>
-            </View>
-        }
-        return toReturn;
-    }
+    // forFlatlist = (da) => {
+    //     var data = da;
+    //     var ok = data;
+    //     return [{key: "1", content: expired, message: "Expired!!!", bgc: "#e77681"}, {key: "2", content: ok, message: "Other products", bgc: "#28a745"}];
+    // }
+
+    // prepareFoodData = (foodArray) => {
+    //     var expiredFood = [];
+    //     var soonToExpireFood = [];
+    //     var safeToEatFood = [];
+
+    //     foodArray.sort((a, b) => this.orderFoodByDate(a, b))
+    //         .map((item) => {
+    //             var ed = item.expiration;
+    //             var productExpiration = new Date(ed[2], (ed[1] - 1), ed[0]);
+    //             var dayDifference = Math.round((productExpiration - currentDate) / (1000 * 60 * 60 * 24));
+    //             if (dayDifference < 0) {
+    //                 expiredFood.push(item);
+    //             } else if (dayDifference < 7) {
+    //                 soonToExpireFood.push(item);
+    //             } else {
+    //                 safeToEatFood.push(item);
+    //             }
+    //     });
+
+    //     var toReturn = [];
+
+    //     if (expiredFood.length > 0) {
+    //         toReturn.push({content: expiredFood, message: "Expired!!!", bgc: "#e77681"});
+    //     }
+    //     if (soonToExpireFood.length > 0) {
+    //         toReturn.push({content: soonToExpireFood, message: "Soon to expire!", bgc: "#ffc107"});
+    //     }
+    //     if (safeToEatFood.length > 0) {
+    //         toReturn.push({content: safeToEatFood, message: "Other products", bgc: "#28a745"});
+    //     }
+
+    //     return toReturn;
+    // }
 
     render() {
+        var foodDataArray = this.props.foodInHouse;
+        var profileID = this.props.profileID;
+        var foodDataRef = firebase.database().ref('food/' + profileID).on("value", (snapshot) => foodDataArray = snapshot.val());
+
         return (
             <Container>
                 <Header>
                     <Body>
-                        <Title>Products in my shelf {this.props.testState}</Title>
+                        <Title>Products in my shelf</Title>
                     </Body>
                 </Header>
                 <Content>
+
+                    {/* <CurrentFoodList
+                        foodData={foodDataArray}
+                        showEditModal={this.showEditModal}
+                        removeFood={this.showRemoveModal}
+                        separatorContent={{ "message": "Other products", "bgc": "#28a745" }}
+                    /> */}
+
+                    {/* {this.renderFoodLists(foodDataArray)} */}
+
+                    {/* <FlatList
+                        data={this.renderFoodLists2(foodDataArray)}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderItem={({item}) => {
+                        return item
+                    }}
+                    /> */}
+
+                    {/* <FlatList
+                        data={this.prepareFoodData(foodDataArray)}
+                        renderItem={({item}) => {
+                        return  <Content><CurrentFoodList
+                                    foodData={item.content}
+                                    showEditModal={this.showEditModal}
+                                    removeFood={this.showRemoveModal}
+                                    separatorContent={{ "message": item.message, "bgc": item.bgc }}
+                                /></Content>
+                    }}
+                    /> */}
+
                     {
                         /* List of products */
-                        this.renderFoodLists()
+                        this.renderFoodLists(foodDataArray)
                     }
 
                     {/* Modal for edit */}

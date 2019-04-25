@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, AsyncStorage, TextInput } from 'react-native';
+import { View, AsyncStorage, TextInput, Alert } from 'react-native';
 import { Content, Button, Text, Header, Title, Body, Container } from 'native-base';
 import firebase from 'firebase';
 import Modal from "react-native-modal";
@@ -44,23 +44,36 @@ export default class FoodAdd extends React.Component {
                 showError: true
             });
         } 
+
         //Save the new food
-        else {     
+        else {
+            var currentFood = this.props.foodInHouse;
+            currentFood.splice(0,0, foodToSave);    
+
+            var pID = '';
             //Check the profile ID
             AsyncStorage.getItem("profileId").then(profileID => {
                 if (profileID === null) {
                     //Save food to Firebase and get its key as a new profile ID
                     var newProfileID = firebase.database().ref("food").push(foodData).key;
+                    pID = newProfileID;
                     AsyncStorage.setItem("profileId", newProfileID).catch(error => console.log(error));
                 } else {
                     //Put food to Firebase through set() method
-                    var foodState = this.props.foodInHouse;
-                    foodState.push(foodToSave);
-                    firebase.database().ref('food/' + profileID).set(foodState);
+                    firebase.database().ref('food/'+profileID).set(currentFood);
                 }
-                //Save the new food to Parent's state
-                this.props.saveParentFoodInHouse(foodToSave);
             })
+            .then(() => this.props.changePstate(currentFood, pID))
+            .then(() => Alert.alert(foodToSave.name + " added!"))
+            .then(() => this.manageTheUnits(foodToSave.quantity.type))
+            .then(() => this.setState({newFood: {
+                "name": "",
+                "quantity": {
+                    "type": "default",
+                    "amount": ""
+                },
+                "expiration": []
+            }}))
             .catch(error => console.log(error));
         }
     }

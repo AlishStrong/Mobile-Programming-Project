@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { Alert, Text, AsyncStorage } from 'react-native';
 import { Container, Tab, Tabs } from 'native-base';
 
 import FoodList from "./views/FoodList";
@@ -9,14 +9,27 @@ export default class MyFoodScreen extends React.Component {
     static navigationOptions = { title: 'My food', };
 
     state = {
-        foodInHouse: this.props.navigation.state.params.foodInHouse
+        foodInHouse: this.props.navigation.state.params.foodInHouse,
+        profileID: ''
     }
 
-    saveNewFood = (food) => {
-        Alert.alert("I modify parent food");
-        var foodState = this.state.foodInHouse;
-        foodState.push(food);
-        this.setState({foodInHouse: foodState});
+    componentDidMount = () => {
+        AsyncStorage.getItem("profileId")
+        .then(pID => {this.setState({profileID: pID})})
+        .catch(error => console.log(error));;
+    }
+
+    changePstate = (newFoodState, newProfileID) => {
+        if (newProfileID !== '') {
+            this.setState({
+                foodInHouse: newFoodState,
+                profileID: newProfileID
+            });
+        } else {
+            this.setState({
+                foodInHouse: newFoodState
+            });
+        }
     }
 
     render() {
@@ -24,10 +37,10 @@ export default class MyFoodScreen extends React.Component {
             <Container>
                 <Tabs tabBarPosition="bottom">
                     <Tab heading="My shelf" tabStyle={{ width: 100 }} activeTabStyle={{ width: 100 }} tab>
-                        <FoodList foodInHouse={this.state.foodInHouse} />
+                        <FoodList foodInHouse={this.state.foodInHouse} profileID={this.state.profileID} />
                     </Tab>
-                    <Tab heading="Add item" tabStyle={{ width: 100 }} activeTabStyle={{ width: 100 }}>
-                        <FoodAdd foodInHouse={this.state.foodInHouse} saveParentFoodInHouse={this.saveNewFood} />
+                    <Tab heading="Add food" tabStyle={{ width: 100 }} activeTabStyle={{ width: 100 }}>
+                        <FoodAdd changePstate={this.changePstate} foodInHouse={this.state.foodInHouse} />
                     </Tab>
                 </Tabs>
             </Container>
