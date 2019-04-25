@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Text, AsyncStorage } from 'react-native';
+import { AsyncStorage } from 'react-native';
 import { Container, Tab, Tabs } from 'native-base';
 
 import FoodList from "./views/FoodList";
@@ -37,7 +37,7 @@ export default class MyFoodScreen extends React.Component {
             <Container>
                 <Tabs tabBarPosition="bottom">
                     <Tab heading="My shelf" tabStyle={{ width: 100 }} activeTabStyle={{ width: 100 }} tab>
-                        <FoodList foodInHouse={this.state.foodInHouse} profileID={this.state.profileID} />
+                        <FoodList foodInHouse={this.state.foodInHouse} profileID={this.state.profileID} changePstate={this.changePstate} />
                     </Tab>
                     <Tab heading="Add food" tabStyle={{ width: 100 }} activeTabStyle={{ width: 100 }}>
                         <FoodAdd changePstate={this.changePstate} foodInHouse={this.state.foodInHouse} />

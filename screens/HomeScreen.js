@@ -102,8 +102,6 @@ export default class HomeScreen extends React.Component {
         return (
             <Container>
                 <Content>
-                    <Text>Food in house {this.state.foodInHouse.length}</Text>
-
                     <Text style={styles.headerStyle}>This is the home screen</Text>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block success
@@ -112,7 +110,7 @@ export default class HomeScreen extends React.Component {
                     </Button>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block info
-                        onPress={() => navigate('MyFoodRT', { testGPfood: this.state.testGPfood, foodInHouse: this.state.foodInHouse })} >
+                        onPress={() => navigate('MyFoodRT', { foodInHouse: this.state.foodInHouse })} >
                         <Text>My Food</Text>
                     </Button>
                     <Button disabled={!this.state.loaded}

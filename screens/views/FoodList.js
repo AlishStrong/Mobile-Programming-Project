@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, FlatList, AsyncStorage, Alert } from 'react-native';
+import { View, TextInput } from 'react-native';
 import { Separator, List, ListItem, Content, Button, Text, Right, Header, Title, Body, Container } from 'native-base';
 import firebase from 'firebase';
 import Modal from "react-native-modal"; //Does not support native-base properly components
@@ -19,45 +19,8 @@ export default class FoodList extends React.Component {
                 "amount": "test"
             },
             "expiration": ["test"]
-        },
-
-        // foodInHouse: this.props.foodInHouse,
-        // expiredFood: [],
-        // soonToExpireFood: [],
-        // safeFood: [],
-
+        }
     }
-
-    // componentDidMount = () => {
-    //     var foodArray = this.state.foodInHouse;
-    //     if (foodArray !== null && foodArray.length > 0) {
-    //         foodArray.sort((a, b) => this.orderFoodByDate(a, b));
-
-    //         var expiredFood = [];
-    //         var soonToExpire = [];
-    //         var safeToEat = [];
-
-    //         foodArray.map((item) => {
-    //             ed = item.expiration;
-    //             var productExpiration = new Date(ed[2], (ed[1] - 1), ed[0]);
-    //             var dayDifference = Math.round((productExpiration - currentDate) / (1000 * 60 * 60 * 24));
-    //             if (dayDifference < 0) {
-    //                 expiredFood.push(item);
-    //             } else if (dayDifference < 7) {
-    //                 soonToExpire.push(item);
-    //             } else {
-    //                 safeToEat.push(item);
-    //             }
-    //         });
-
-    //         this.setState({
-    //             expiredFood: expiredFood,
-    //             soonToExpireFood: soonToExpire,
-    //             safeFood: safeToEat
-    //         });
-    //     }
-    // }
-
 
     //You can return an array of objects for rendering!
     renderFoodLists = (foodArray) => {
@@ -116,9 +79,7 @@ export default class FoodList extends React.Component {
                 );
             }
         }
-
         else {
-            alert.alert("There is no food");
             return <Text>There is no food</Text>
         }
 
@@ -141,32 +102,27 @@ export default class FoodList extends React.Component {
     }
 
     removeFood = () => {
-        var source = this.state.modalContent.source;
         var nameToRemove = this.state.modalContent.name;
-        var oldFoodState = [];
-        if (source === "Expired!!!") {
-            oldFoodState = this.state.expiredFood;
-            var newFoodState = oldFoodState.filter((item) => item.name !== nameToRemove);
-            this.setState({
-                expiredFood: newFoodState
-            });
-        }
-        else if (source === "Soon to expire!") {
-            oldFoodState = this.state.soonToExpireFood;
-            var newFoodState = oldFoodState.filter((item) => item.name !== nameToRemove);
-            this.setState({
-                soonToExpireFood: newFoodState
-            });
-        }
-        else {
-            oldFoodState = this.state.safeFood;
-            var newFoodState = oldFoodState.filter((item) => item.name !== nameToRemove);
-            this.setState({
-                safeFood: newFoodState
-            });
-        }
+        var oldFoodState = this.props.foodInHouse;
+        var newFoodState = oldFoodState.filter((item) => item.name !== nameToRemove);
+        var profileID = this.props.profileID;
+        firebase.database().ref('food/' + profileID).set(newFoodState);
+        this.props.changePstate(newFoodState, '');
         this.setState({
             showRemoveModal: false
+        });
+    }
+
+    editFood = () => {
+        var nameToEdit = this.state.modalContent.name;
+        var oldFoodState = this.props.foodInHouse;
+        var newFoodState = oldFoodState.filter((item) => item.name !== nameToEdit);
+        newFoodState.splice(0,0,this.state.modalContent);
+        var profileID = this.props.profileID;
+        firebase.database().ref('food/' + profileID).set(newFoodState);
+        this.props.changePstate(newFoodState, '');
+        this.setState({
+            showEditModal: false
         });
     }
 
@@ -186,46 +142,6 @@ export default class FoodList extends React.Component {
         });
     }
 
-    // forFlatlist = (da) => {
-    //     var data = da;
-    //     var ok = data;
-    //     return [{key: "1", content: expired, message: "Expired!!!", bgc: "#e77681"}, {key: "2", content: ok, message: "Other products", bgc: "#28a745"}];
-    // }
-
-    // prepareFoodData = (foodArray) => {
-    //     var expiredFood = [];
-    //     var soonToExpireFood = [];
-    //     var safeToEatFood = [];
-
-    //     foodArray.sort((a, b) => this.orderFoodByDate(a, b))
-    //         .map((item) => {
-    //             var ed = item.expiration;
-    //             var productExpiration = new Date(ed[2], (ed[1] - 1), ed[0]);
-    //             var dayDifference = Math.round((productExpiration - currentDate) / (1000 * 60 * 60 * 24));
-    //             if (dayDifference < 0) {
-    //                 expiredFood.push(item);
-    //             } else if (dayDifference < 7) {
-    //                 soonToExpireFood.push(item);
-    //             } else {
-    //                 safeToEatFood.push(item);
-    //             }
-    //     });
-
-    //     var toReturn = [];
-
-    //     if (expiredFood.length > 0) {
-    //         toReturn.push({content: expiredFood, message: "Expired!!!", bgc: "#e77681"});
-    //     }
-    //     if (soonToExpireFood.length > 0) {
-    //         toReturn.push({content: soonToExpireFood, message: "Soon to expire!", bgc: "#ffc107"});
-    //     }
-    //     if (safeToEatFood.length > 0) {
-    //         toReturn.push({content: safeToEatFood, message: "Other products", bgc: "#28a745"});
-    //     }
-
-    //     return toReturn;
-    // }
-
     render() {
         var foodDataArray = this.props.foodInHouse;
         var profileID = this.props.profileID;
@@ -239,35 +155,6 @@ export default class FoodList extends React.Component {
                     </Body>
                 </Header>
                 <Content>
-
-                    {/* <CurrentFoodList
-                        foodData={foodDataArray}
-                        showEditModal={this.showEditModal}
-                        removeFood={this.showRemoveModal}
-                        separatorContent={{ "message": "Other products", "bgc": "#28a745" }}
-                    /> */}
-
-                    {/* {this.renderFoodLists(foodDataArray)} */}
-
-                    {/* <FlatList
-                        data={this.renderFoodLists2(foodDataArray)}
-                        keyExtractor={(item, index) => index.toString()}
-                        renderItem={({item}) => {
-                        return item
-                    }}
-                    /> */}
-
-                    {/* <FlatList
-                        data={this.prepareFoodData(foodDataArray)}
-                        renderItem={({item}) => {
-                        return  <Content><CurrentFoodList
-                                    foodData={item.content}
-                                    showEditModal={this.showEditModal}
-                                    removeFood={this.showRemoveModal}
-                                    separatorContent={{ "message": item.message, "bgc": item.bgc }}
-                                /></Content>
-                    }}
-                    /> */}
 
                     {
                         /* List of products */
