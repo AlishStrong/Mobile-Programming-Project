@@ -30,7 +30,7 @@ export default class ProfileScreen extends React.Component {
                         </Content>
                     </Tab>
                     <Tab heading="Diet Recommendation" tabStyle={{ width: 100 }} activeTabStyle={{ width: 100 }}>
-                        <DietRecView profileData={this.state.profileData} />
+                        <DietRecView profileData={this.state.profileData} setDailyCaloriesState={this.props.navigation.state.params.setDailyCaloriesState} />
                     </Tab>
                 </Tabs>
             </Container>

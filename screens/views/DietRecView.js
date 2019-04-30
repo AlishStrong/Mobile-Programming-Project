@@ -49,21 +49,33 @@ const imgSrc = {
 };
 
 export default class DietRecView extends React.Component {
-    render() {
-        //Calculate Basal Metabolic Rate and daily energy consumption in calories
+
+    state = {
+        BMR: 0.0,
+        dailyIntake: 0.0
+    }
+
+    componentWillMount = () => {
         var BMR = 10 * parseFloat(this.props.profileData.weight) + 6.25 * parseFloat(this.props.profileData.height) - 5 * parseFloat(this.props.profileData.age);
         this.props.profileData.gender === 'male' ? BMR += 5 : BMR -= 161;
         var exercising = this.props.profileData.exercise;
         var goal = this.props.profileData.aim;
         var dailyIntake = BMR * coefficients[exercising][goal];
-        
+        this.setState({
+            BMR: BMR,
+            dailyIntake: dailyIntake
+        });
+        this.props.setDailyCaloriesState(dailyIntake);
+    }
+
+    render() {        
         return (
             <Content padder>
                 <H3>Dietary Reccomendations</H3>
                 <Content>
-                    <Image source={imgSrc[this.props.profileData.aim][this.props.profileData.gender]} />
-                    <Text>Your BMR index is {Math.round(BMR)}</Text>
-                    <Text>According to the data you provided, in order to {this.props.profileData.aim.replace('-', ' ')} you should consume {Math.round(dailyIntake)} calories per day</Text>
+                    <Image style={{ alignSelf: "center" }} source={imgSrc[this.props.profileData.aim][this.props.profileData.gender]} />
+                    <Text>Your BMR index is {Math.round(this.state.BMR)}</Text>
+                    <Text>According to the data you provided, in order to {this.props.profileData.aim.replace('-', ' ')} you should consume {Math.round(this.state.dailyIntake)} calories per day.</Text>
                     {(this.props.profileData.allergy && this.props.profileData.allergy.length > 0) &&
                         <Text>
                             A friendly reminder that you should not consume the following products due to your dietary restrictions: {this.props.profileData.allergy.join(', ')}.

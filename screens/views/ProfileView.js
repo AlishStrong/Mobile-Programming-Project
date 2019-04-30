@@ -176,44 +176,44 @@ export default class ProfileView extends React.Component {
                     </Item>
 
                     {/* Dietary restrictions prompt */}
-                    <H3>Your dietary restrictions</H3>
+                    <H3>Your dietary wishes</H3>
                     <ListItem>
                         <Left>
-                            <Text>Lactose</Text>
+                            <Text>Minimize sugar consumption</Text>
                         </Left>
                         <Right>
-                            <Radio selected={this.state.allergyState.includes('lactose')}
-                                onPress={() => this.addRemoveAllergies('lactose')}
+                            <Radio selected={this.state.allergyState.includes('sugar-conscious')}
+                                onPress={() => this.addRemoveAllergies('sugar-conscious')}
                                 disabled={this.state.editCancelButton === 'Edit'} />
                         </Right>
                     </ListItem>
                     <ListItem>
                         <Left>
-                            <Text>Gluten</Text>
+                            <Text>Vegetarian lifestyle</Text>
                         </Left>
                         <Right>
-                            <Radio selected={this.state.allergyState.includes('gluten')}
-                                onPress={() => this.addRemoveAllergies('gluten')}
+                            <Radio selected={this.state.allergyState.includes('vegetarian')}
+                                onPress={() => this.addRemoveAllergies('vegetarian')}
                                 disabled={this.state.editCancelButton === 'Edit'} />
                         </Right>
                     </ListItem>
                     <ListItem>
                         <Left>
-                            <Text>Soy</Text>
+                            <Text>No alcohol</Text>
                         </Left>
                         <Right>
-                            <Radio selected={this.state.allergyState.includes('soy')}
-                                onPress={() => this.addRemoveAllergies('soy')}
+                            <Radio selected={this.state.allergyState.includes('alcohol-free')}
+                                onPress={() => this.addRemoveAllergies('alcohol-free')}
                                 disabled={this.state.editCancelButton === 'Edit'} />
                         </Right>
                     </ListItem>
                     <ListItem>
                         <Left>
-                            <Text>Nuts</Text>
+                            <Text>No peanuts</Text>
                         </Left>
                         <Right>
-                            <Radio selected={this.state.allergyState.includes('nuts')}
-                                onPress={() => this.addRemoveAllergies('nuts')}
+                            <Radio selected={this.state.allergyState.includes('peanut-free')}
+                                onPress={() => this.addRemoveAllergies('peanut-free')}
                                 disabled={this.state.editCancelButton === 'Edit'} />
                         </Right>
                     </ListItem>

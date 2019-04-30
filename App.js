@@ -1,14 +1,14 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import{createAppContainer, createStackNavigator} from 'react-navigation';
 import HomeScreen from './screens/HomeScreen';
 import DiaryScreen from './screens/DiaryScreen';
 import MyFoodScreen from './screens/MyFoodScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import RecipesScreen from './screens/RecipesScreen';
+import RecipeView from './screens/views/RecipeView';
 
 import { Font, AppLoading } from 'expo';
-import { Spinner } from 'native-base';
 
 import firebase from 'firebase';
 
@@ -25,6 +25,9 @@ const MyRoutes = createStackNavigator({
   },
   RecipesRT: {
     screen: RecipesScreen
+  },
+  RecipeDetailRT: {
+    screen: RecipeView
   },
   DiaryRT: {
     screen: DiaryScreen

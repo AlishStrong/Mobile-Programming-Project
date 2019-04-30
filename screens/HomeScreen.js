@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, AsyncStorage, Alert } from 'react-native';
+import { StyleSheet, AsyncStorage } from 'react-native';
 import { Container, Content, Button, Text } from 'native-base';
 import firebase from 'firebase';
 
@@ -9,6 +9,7 @@ export default class HomeScreen extends React.Component {
 
     state = {
         loaded: false,
+        dailyCalories: 2433,
         testState: 'I was created by Parent',
         profileData: {},
         foodInHouse: [
@@ -46,7 +47,7 @@ export default class HomeScreen extends React.Component {
                         profileData: {
                             "age": "25",
                             "aim": "maintain-weight",
-                            "allergy": ["nuts", "gluten"],
+                            "allergy": ["peanut-free"],
                             "exercise": "moderate",
                             "gender": "male",
                             "height": "180",
@@ -83,18 +84,12 @@ export default class HomeScreen extends React.Component {
             .catch((error) => console.log(error));
     }
 
-    modifyProfileData = (newProfileData) => {
-        this.setState({  });
+    setDailyCaloriesState = (newCalIntake) => {
+        this.setState({dailyCalories: newCalIntake});
     }
 
-    editTestState = (something) => {
-        this.setState({ showText: true });
-        if (something !== 'undefined') {
-            this.setState({ testState: something });
-            Alert.alert("you passed: " + something + ". Thus the new state is: " + this.state.testState);
-        } else {
-            Alert.alert("I am showing the default state: " + this.state.testState);
-        }
+    modifyProfileData = (newProfileData) => {
+        this.setState({  });
     }
 
     render() {
@@ -105,7 +100,7 @@ export default class HomeScreen extends React.Component {
                     <Text style={styles.headerStyle}>This is the home screen</Text>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block success
-                        onPress={() => navigate('ProfileRT', { profileData: this.state.profileData, modifyGrandParentProfileData: this.modifyProfileData })} >
+                        onPress={() => navigate('ProfileRT', { profileData: this.state.profileData, modifyGrandParentProfileData: this.modifyProfileData, setDailyCaloriesState: this.setDailyCaloriesState })} >
                         <Text>Profile</Text>
                     </Button>
                     <Button disabled={!this.state.loaded}
@@ -115,7 +110,7 @@ export default class HomeScreen extends React.Component {
                     </Button>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block warning
-                        onPress={() => navigate('RecipesRT', { foodInHouse: this.state.foodInHouse })} >
+                        onPress={() => navigate('RecipesRT', { foodInHouse: this.state.foodInHouse, dailyIntake: this.state.dailyCalories, profileData: this.state.profileData })} >
                         <Text>Recipes</Text>
                     </Button>
                     <Button disabled={!this.state.loaded}
