@@ -12,6 +12,7 @@ export default class HomeScreen extends React.Component {
         dailyCalories: 2433,
         testState: 'I was created by Parent',
         profileData: {},
+        progressData: {},
         foodInHouse: [
             {
                 "name": "Pizza",
@@ -82,6 +83,14 @@ export default class HomeScreen extends React.Component {
                 });
             })
             .catch((error) => console.log(error));
+        //Fetch progressData    
+        firebase.database().ref('progress/' + profileID).once('value')
+            .then((snapshot) => {
+                this.setState({
+                    progressData: snapshot.val()
+                });
+            })
+            .catch((error) => console.log(error));
     }
 
     setDailyCaloriesState = (newCalIntake) => {
@@ -97,7 +106,7 @@ export default class HomeScreen extends React.Component {
         return (
             <Container>
                 <Content>
-                    <Text style={styles.headerStyle}>This is the home screen</Text>
+                    <Text style={styles.headerStyle}>Welcome, this app will help you in global action for food waste reduction</Text>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block success
                         onPress={() => navigate('ProfileRT', { profileData: this.state.profileData, modifyGrandParentProfileData: this.modifyProfileData, setDailyCaloriesState: this.setDailyCaloriesState })} >
@@ -115,7 +124,7 @@ export default class HomeScreen extends React.Component {
                     </Button>
                     <Button disabled={!this.state.loaded}
                         style={styles.buttonStyle} block danger
-                        onPress={() => navigate('DiaryRT')} >
+                        onPress={() => navigate('DiaryRT', { progressData: this.state.progressData })} >
                         <Text>Diary</Text>
                     </Button>
                 </Content>

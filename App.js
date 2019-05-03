@@ -12,6 +12,8 @@ import { Font, AppLoading } from 'expo';
 
 import firebase from 'firebase';
 
+console.disableYellowBox = true;
+
 //Navigation routes
 const MyRoutes = createStackNavigator({
   HomeRT: {
